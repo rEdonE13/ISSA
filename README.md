@@ -1,2 +1,2 @@
-# SSA
-Storage System Application
+# iSSA
+Intelligent Storage System Application
