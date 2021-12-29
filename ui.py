@@ -19,7 +19,6 @@ class ISSAInterface:
         now = datetime.now()
         self.window = Tk()
         self.window.title("iSSA")
-        self.window.ic
         self.window.geometry('440x200')
         self.window.config(padx=20, pady=40)
 
