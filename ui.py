@@ -7,7 +7,7 @@ from tkcalendar import DateEntry
 from report import Report
 from issa import *
 
-FONT = ("Arial", 17, "normal")
+FONT = ("Arial", 16, "normal")
 
 class ISSAInterface:
     """User Interface for ISSA.
@@ -20,7 +20,7 @@ class ISSAInterface:
         now = datetime.now()
         self.window = Tk()
         self.window.title("iSSA")
-        self.window.geometry('440x200')
+        self.window.geometry('480x200')
         self.window.config(padx=20, pady=40)
         self.last_serial_number = self.get_last_serial_number()
 
@@ -46,7 +46,7 @@ class ISSAInterface:
         
         # Button
         self.report_button = Button(
-            width=10,
+            width=12,
             height=3,
             text="Create Report",
             font=FONT,
