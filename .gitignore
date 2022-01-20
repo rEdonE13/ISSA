@@ -154,3 +154,4 @@ cython_debug/
 # Project Folders
 .venv
 data/*
+.DS_Store

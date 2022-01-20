@@ -5,6 +5,7 @@ from tkinter.ttk import Combobox
 from tkcalendar import DateEntry
 
 from report import Report
+from issa import *
 
 FONT = ("Arial", 17, "normal")
 
@@ -21,14 +22,19 @@ class ISSAInterface:
         self.window.title("iSSA")
         self.window.geometry('440x200')
         self.window.config(padx=20, pady=40)
+        self.last_serial_number = self.get_last_serial_number()
 
-        #Label
+        #Labels
         self.sn_label = Label(text="Serial Number", font=FONT)
-        self.sn_label.pack()
         self.sn_label.grid(sticky=W, column=0, row=0)
+
+        self.stauts_label = Label(text="", font=("Arial", 14))
+        self.stauts_label.grid(sticky=W, column=0, row=3)
         
         # Input
-        self.report_input = Entry(width=18, font=FONT)
+        text = StringVar()
+        text.set(self.last_serial_number)
+        self.report_input = Entry(width=18, font=FONT, textvariable=text)
         self.report_input.grid(sticky=W, column=0, row=1)
         
         # Combobox
@@ -53,6 +59,18 @@ class ISSAInterface:
 
         self.window.mainloop()
 
+
+    def get_last_serial_number(self) -> str:
+        """
+        Gets last serial number from Product Table.
+
+        Returns
+            serial_number (str): Latest product serial number.
+        """
+        product = ProductTable()
+        return product.get_last_row()[0]
+
+    
     def generate_report(self):
         report = Report()
         serial_number = self.report_input.get()
@@ -61,11 +79,13 @@ class ISSAInterface:
         if selected_option.lower() == "benchmark":
             if serial_number:
                 report.write_product_benchmark(serial_number)
+                self.stauts_label.config(text="Benchmark successfully created!")
             else:
                 report.write_last_product_benchmark()
         
         elif selected_option.lower() == "log":
             if serial_number:
                 report.write_log_test(serial_number)
+                self.stauts_label.config(text="Log successfully created!")
             else:
                 report.write_log_test_last_product()
