@@ -89,3 +89,7 @@ class ISSAInterface:
                 self.stauts_label.config(text="Log successfully created!")
             else:
                 report.write_log_test_last_product()
+
+
+if "__main__" == __name__:
+    ISSAInterface()

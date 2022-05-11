@@ -1,3 +1,4 @@
+import os
 import sqlite3
 from sqlite3 import Error, Connection
 from sqlite3.dbapi2 import IntegrityError
@@ -27,8 +28,9 @@ class ISSA:
         is_valid():
             Looks if the pk_value exists in the calling child class DB table_name.
     """
-    def __init__(self, db_file: str = "db/test.db") -> None:
+    def __init__(self, db_file: str = "../db/pme.db") -> None:
         self.db_file = db_file
+        self.cwd = os.getcwd()
         self.table_name = ""
         self.primary_key = "id"
         self.create_connection()
@@ -81,7 +83,16 @@ class ISSA:
             print(e)
 
 
-    def insert(self, table_data):
+    def insert(self, table_data) -> None:
+        """
+        Inserts data into the db.
+
+        Parameters
+            table_data  (dict): dict containing the table name and values to insert.
+        
+        Returns
+            None
+        """
         try:
             with self.create_connection() as conn:
                 c = conn.cursor()
@@ -90,6 +101,37 @@ class ISSA:
                     values = ('?,'*len(item)).rstrip(",")
                     query=f"INSERT INTO {table_data['table_name']} {columns} VALUES ({values})"
                     params = tuple(item.values())
+                    c.execute(query, params)
+                conn.commit()
+        except IntegrityError as e:
+            pass
+        except Error as e:
+            print(e)
+
+
+    def insert_values(self, columns: list = [], table_data: list = []) -> None:
+        """
+        Inserts data from the provided params from TestStand.
+
+        Parameters
+            columns     (list): Column names of the DB table.
+            table_data  (list): Values for the provided columns.
+
+        Returns
+            None
+        """
+        try:
+            with self.create_connection() as conn:
+                c = conn.cursor()
+                columns = tuple(columns)
+                for item in table_data:
+                    columns = columns if len(columns) > 1 else str(columns).replace(',','')
+                    values = ('?,'*len(item)).rstrip(",")
+                    query=f"INSERT INTO {self.table_name} {columns} VALUES ({values})"
+                    params = item
+                    with open("../issa/log.txt", 'w') as f:
+                        f.write(query + '\n')
+                        f.write(str(params) + '\n')
                     c.execute(query, params)
                 conn.commit()
         except IntegrityError as e:
@@ -183,7 +225,7 @@ class ProductTable(ISSA):
     def create(self, create_table_sql: str = "") -> None:
         sql = f"""
             CREATE TABLE IF NOT EXISTS {self.table_name}(
-                serial_number TEXT PRIMARY KEY,
+                {self.primary_key} TEXT PRIMARY KEY,
                 desc TEXT,
                 type TEXT,
                 created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -194,17 +236,20 @@ class ProductTable(ISSA):
         super().create(sql)
 
 
-class RFTechTable(ISSA):
-    def __init__(self, table_name: str = "RF_Tech") -> None:
+class BandTable(ISSA):
+    def __init__(self, table_name: str = "Band") -> None:
         super().__init__()
         self.table_name = table_name
+        self.primary_key = "frequency"
 
 
     def create(self, create_table_sql: str = "") -> None:
         sql = f"""
             CREATE TABLE IF NOT EXISTS {self.table_name}(
-                channel INTEGER PRIMARY KEY,
-                desc TEXT,
+                frequency INTEGER PRIMARY KEY,
+                name TEXT NOT NULL,
+                direction TEXT NOT NULL,
+                target REAL NOT NULL,
                 created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
             );
@@ -213,22 +258,21 @@ class RFTechTable(ISSA):
         super().create(sql)
 
 
-class ProductRFTechTable(ISSA):
-    def __init__(self, table_name: str = "Product_RFTech"):
+class ProductBandTable(ISSA):
+    def __init__(self, table_name: str = "Product_Band"):
         super().__init__()
         self.table_name = table_name
         self.create_table_sql = f"""
             CREATE TABLE IF NOT EXISTS {self.table_name}(
-                id INTEGER PRIMARY KEY,
                 serial_number TEXT NOT NULL,
-                channel INTEGER NOT NULL,
+                frequency TEXT NOT NULL,
                 power REAL,
                 units TEXT,
                 created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-                FOREIGN KEY(serial_number) REFERENCES Product(serial_number),
-                FOREIGN KEY(channel) REFERENCES RF_Tech(channel)
+                FOREIGN KEY(serial_number) REFERENCES ProductTable(serial_number),
+                FOREIGN KEY(frequency) REFERENCES BandTable(frequency)
             );
         """
 
@@ -250,7 +294,7 @@ class LogTable(ISSA):
                 created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-                FOREIGN KEY(serial_number) REFERENCES Product(serial_number)
+                FOREIGN KEY(serial_number) REFERENCES ProductTable(serial_number)
             );
         """
 
@@ -306,8 +350,8 @@ class ProductBenchmarkTable(ISSA):
                 created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-                FOREIGN KEY(serial_number) REFERENCES Product(serial_number),
-                FOREIGN KEY(benchmark_id) REFERENCES Benchmark(id)
+                FOREIGN KEY(serial_number) REFERENCES ProductTable(serial_number),
+                FOREIGN KEY(benchmark_id) REFERENCES BenchmarkTable(id)
             );
         """
 

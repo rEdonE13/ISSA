@@ -1,8 +1,8 @@
+import os
 import pandas as pd
 from datetime import datetime
-from issa import *
 
-BENCHMARK_PATH = "data/Benchmark.xlsx"
+from issa import *
 
 #TODO (redone13): Ask user from_date and to_date
 from_date = datetime(2021, 12, 20)
@@ -15,10 +15,20 @@ product_type = "2906-100-557-51"
 class Report:
     #TODO (redone13): Add documentation
     def __init__(self) -> None:
-        self.log_test_path = "data/LogTest.xlsx"
-        self.benchmark_path = "data/Benchmark.xlsx"
-    
-    
+        self.base_path = self.create_base_path()
+        self.log_test_path = self.base_path + "/LogTest.xlsx"
+        self.benchmark_path = self.base_path + "/Benchmark.xlsx"
+
+
+    def create_base_path(self) -> str:
+        """
+        """
+        base_path = "../reports"
+        if not os.path.exists(base_path):
+            os.mkdir(base_path)
+        return base_path
+
+
     def write_product_benchmark(self, serial_number: str) -> None:
         #TODO (redone13): Add serial number to the begining of the file name
         #     and current date yymmdd

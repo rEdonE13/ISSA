@@ -1,15 +1,13 @@
-from issa import *
 from random import randint
-from report import Report
-from data.temp import logs
-from ui import *
+# from data.temp import logs
+from issa import *
 
 
 def init_database():
     product_table = ProductTable()
     log_table = LogTable()
-    rf_table = RFTechTable()
-    prf_table = ProductRFTechTable()
+    rf_table = BandTable()
+    prf_table = ProductBandTable()
     benchmark_table = BenchmarkTable()
     pb_table = ProductBenchmarkTable()
     
@@ -42,6 +40,7 @@ def populate_db():
     global logs
     serial_numbers = [f"T{21000000100 + i}" for i in range(10)]
     benchmarks = [f"test {1 + i}" for i in range(30)]
+    logs = False
     logs = logs if logs else [f"log {i + 1}" for i in range(10)]
     
     #Insert product
@@ -59,13 +58,34 @@ def populate_db():
             insert_fake_data(table_name="Benchmark", table_values=[{"name": benchmark}])
             insert_fake_data(table_name="Product_Benchmark", table_values=[pb])
 
+    #Insert RF Bands
+    bands = [
+        {'name': 'lte1', 'direction': 'uplink','frequency': 1950, 'target': 23},
+        {'name': 'lte1', 'direction': 'downlink','frequency': 2140, 'target': -60},
+        {'name': 'lte3', 'direction': 'uplink','frequency': 1747, 'target': 23},
+        {'name': 'lte5', 'direction': 'uplink','frequency': 836, 'target': 23},
+        {'name': 'lte7', 'direction': 'uplink','frequency': 2535, 'target': 23},
+    ]
+    
+    insert_fake_data(table_name="Band", table_values=bands)
+    
+    measurements = []
+    for serial_number in serial_numbers:        
+        measurement = {
+            'serial_number': serial_number,
+            'frequency': bands[randint(0, 3)]['frequency'],
+            'power': 23,
+            'units': 'dBm'
+        }        
+        measurements.append(measurement)
+
+    insert_fake_data(table_name="Product_Band", table_values=measurements)
+
 
 if "__main__" == __name__:
-    issa_ui = ISSAInterface()
+    init_database()
 
-    # init_database()
-
-    # populate_db()
+    populate_db()
 
     # #Create log test report
     # serial_number = "T21000000101"
