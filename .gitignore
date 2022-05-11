@@ -153,5 +153,7 @@ cython_debug/
 
 # Project Folders
 .venv
-data/*
+reports/*
 .DS_Store
+*log*
+*.db
