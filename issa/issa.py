@@ -20,7 +20,7 @@ class ISSA:
         drop():
             Drops the DB table from the calling subclass.
         insert():
-            definition
+            Insert data into the database.
         fetch():
             Fetches all data from the input query.
         get_last_row():
@@ -336,6 +336,26 @@ class BenchmarkTable(ISSA):
         super().create(sql)
 
 
+    def get_id(self, name: str) -> int:
+        """
+        Get benchmark id from name.
+
+        Parameters
+            name    (str): Benchmark name.
+
+        Return
+            id      (int): Benchmark id of the requested name.
+        """
+        query = f"""
+            SELECT (id) FROM {self.table_name} WHERE name = '{name}';
+        """
+        rows = self.fetch(query)
+        try:
+            return rows[0][0]
+        except IndexError:
+            pass
+
+
 class ProductBenchmarkTable(ISSA):
     def __init__(self, table_name: str = "Product_Benchmark"):
         super().__init__()
@@ -379,6 +399,29 @@ class ProductBenchmarkTable(ISSA):
                 c = conn.cursor()
                 c.execute(query)
                 return c.fetchall()
+        except Error as e:
+            print(e)
+
+
+    def insert_product_benchmark(self, serial_number: str, benchmark_name: str, duration_sec: int):
+        b = BenchmarkTable()
+        benchmark_id = b.get_id(benchmark_name)
+        if not benchmark_id:
+            table_data = {
+                "table_name": "Benchmark",
+                "table_values": [{"name": benchmark_name}]
+            }
+            b.insert(table_data)
+            benchmark_id = b.get_id(benchmark_name)
+        try:
+            with self.create_connection() as conn:
+                c = conn.cursor()
+                table_data = {
+                    "table_name": self.table_name, 
+                    "table_values": [{  "serial_number": serial_number, 
+                                        "benchmark_id": benchmark_id, 
+                                        "duration_sec": duration_sec}]}
+                self.insert(table_data)
         except Error as e:
             print(e)
 
