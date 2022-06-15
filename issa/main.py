@@ -1,6 +1,7 @@
 from random import randint
 # from data.temp import logs
 from issa import *
+from rf_bands import LTE, WCMDA, GSM
 
 
 def init_database():
@@ -59,14 +60,15 @@ def populate_db():
             insert_fake_data(table_name="Product_Benchmark", table_values=[pb])
 
     #Insert RF Bands
-    bands = [
-        {'name': 'lte1', 'direction': 'uplink','frequency': 1950, 'target': 23},
-        {'name': 'lte1', 'direction': 'downlink','frequency': 2140, 'target': -60},
-        {'name': 'lte3', 'direction': 'uplink','frequency': 1747, 'target': 23},
-        {'name': 'lte5', 'direction': 'uplink','frequency': 836, 'target': 23},
-        {'name': 'lte7', 'direction': 'uplink','frequency': 2535, 'target': 23},
-    ]
-    
+    # bands = [
+    #     {'name': 'lte1', 'direction': 'uplink','frequency': 1950, 'target': 23},
+    #     {'name': 'lte1', 'direction': 'downlink','frequency': 2140, 'target': -60},
+    #     {'name': 'lte3', 'direction': 'uplink','frequency': 1747, 'target': 23},
+    #     {'name': 'lte5', 'direction': 'uplink','frequency': 836, 'target': 23},
+    #     {'name': 'lte7', 'direction': 'uplink','frequency': 2535, 'target': 23},
+    # ]
+
+    bands = LTE + WCMDA + GSM
     insert_fake_data(table_name="Band", table_values=bands)
     
     measurements = []

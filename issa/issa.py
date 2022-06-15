@@ -3,6 +3,8 @@ import sqlite3
 from sqlite3 import Error, Connection
 from sqlite3.dbapi2 import IntegrityError
 
+from numpy import double
+
 class ISSA:
     """
     A class to represent the Intelligent Storage System Administration.
@@ -240,14 +242,15 @@ class BandTable(ISSA):
     def __init__(self, table_name: str = "Band") -> None:
         super().__init__()
         self.table_name = table_name
-        self.primary_key = "frequency"
 
 
     def create(self, create_table_sql: str = "") -> None:
         sql = f"""
             CREATE TABLE IF NOT EXISTS {self.table_name}(
-                frequency INTEGER PRIMARY KEY,
-                name TEXT NOT NULL,
+                id INTEGER PRIMARY KEY,
+                tech TEXT NOT NULL,
+                band INTEGER NOT NULL,
+                frequency REAL NOT NULL,
                 direction TEXT NOT NULL,
                 target REAL NOT NULL,
                 created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -256,6 +259,24 @@ class BandTable(ISSA):
         """
         sql = create_table_sql if create_table_sql else sql
         super().create(sql)
+    
+
+    def is_valid(self, tech: str, band: int, freq: float) -> bool:
+        query = f"""
+            SELECT *
+            FROM {self.table_name}
+            WHERE tech is '{tech}' AND band is {band} AND frequency is {freq};
+        """
+        try:
+            with self.create_connection() as conn:
+                c = conn.cursor()
+                c.execute(query)
+                last_row = c.fetchone()
+                if last_row:
+                    return True
+        except Error as e:
+            print(e)
+            return False
 
 
 class ProductBandTable(ISSA):
@@ -265,7 +286,7 @@ class ProductBandTable(ISSA):
         self.create_table_sql = f"""
             CREATE TABLE IF NOT EXISTS {self.table_name}(
                 serial_number TEXT NOT NULL,
-                frequency TEXT NOT NULL,
+                frequency REAL NOT NULL,
                 power REAL,
                 units TEXT,
                 created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -279,6 +300,21 @@ class ProductBandTable(ISSA):
 
     def create(self) -> None:
         super().create(self.create_table_sql)
+
+
+    def insert_product_band(self, serial_number: str, tech: str, band: int, frequency: float, power: float, units: str) -> None:
+        bt = BandTable()
+        if bt.is_valid(tech, band, frequency):
+            table_data = {
+                "table_name": self.table_name,
+                "table_values": [{
+                    "serial_number": serial_number,
+                    "frequency": frequency,
+                    "power": power,
+                    "units": units,}]
+            }
+            self.insert(table_data)
+        pass
 
 
 class LogTable(ISSA):
@@ -311,7 +347,7 @@ class LogTable(ISSA):
             l.desc as 'Description',
             l.created_on as 'Creation Date'
         FROM Log l 
-        WHERE  serial_number is '{serial_number}';
+        WHERE serial_number is '{serial_number}';
         '''
         return self.fetch(query)
 
