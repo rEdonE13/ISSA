@@ -464,3 +464,111 @@ class ProductBenchmarkTable(ISSA):
 
     def get_product_benchmarks(self, serial_numbers: list) -> list:
         return [self.get_product_benchmark(serial_number) for serial_number in serial_numbers]
+
+
+class TestTable(ISSA):
+    def __init__(self, table_name: str = "Test") -> None:
+        super().__init__()
+        self.table_name = table_name
+
+
+    def create(self, create_table_sql: str = "") -> None:
+        sql = f"""
+            CREATE TABLE IF NOT EXISTS {self.table_name}(
+                id INTEGER PRIMARY KEY,
+                name TEXT NOT NULL UNIQUE,
+                type TEXT NOT NULL,
+                min_limit TEXT NOT NULL,
+                max_limit TEXT,
+                units TEXT NOT NULL,
+                created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+        """
+        sql = create_table_sql if create_table_sql else sql
+        super().create(sql)
+
+
+    def is_valid(self, name: str) -> bool:
+        query = f"""
+        SELECT id
+        FROM { self.table_name }
+        WHERE name is '{name}';
+        """
+        try:
+            with self.create_connection() as conn:
+                c = conn.cursor()
+                c.execute(query)
+                id = c.fetchone()
+                if id:
+                    return True
+                else:
+                    return False
+        except Error as e:
+            print(e)
+
+
+    def get_id(self, name: str) -> int:
+        """
+        Get test id from name.
+
+        Parameters
+            name    (str): Test name.
+
+        Return
+            id      (int): Test id of the requested name.
+        """
+        query = f"""
+            SELECT (id) FROM {self.table_name} WHERE name = '{name}';
+        """
+        rows = self.fetch(query)
+        try:
+            return rows[0][0]
+        except IndexError:
+            pass
+
+
+class ProductTestTable(ISSA):
+    def __init__(self, table_name: str = "Product_Test") -> None:
+        super().__init__()
+        self.table_name = table_name
+
+
+    def create(self, create_table_sql: str = "") -> None:
+        sql = f"""
+            CREATE TABLE IF NOT EXISTS {self.table_name}(
+                id INTEGER PRIMARY KEY,
+                serial_number TEXT NOT NULL,
+                test_id INTEGER NOT NULL,
+                result TEXT NOT NULL,
+                created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+                FOREIGN KEY(serial_number) REFERENCES ProductTable(serial_number),
+                FOREIGN KEY(test_id) REFERENCES BenchmarkTable(id)
+            );
+        """
+        sql = create_table_sql if create_table_sql else sql
+        super().create(sql)
+
+
+    def insert_product_test(self, serial_number: str, tests: list) -> None:
+        with open("../issa/log.txt", 'w') as f:
+            f.write(serial_number + '\n')
+            for item in tests:
+                f.write(str(item) + '\n')
+
+        pt = ProductTestTable()
+        test_table = TestTable()
+        for test in tests:
+            if not test_table.is_valid(test[0]):
+                test_table.insert_values(
+                    columns=["name", "type", "min_limit", "max_limit", "units"],
+                    table_data=[test[:5]]
+                )
+            test_id = test_table.get_id(test[0])
+            print(test_id)
+            pt.insert_values(
+                columns=["serial_number", "test_id", "result"],
+                table_data=[(serial_number, test_id, test[-1])]
+            )

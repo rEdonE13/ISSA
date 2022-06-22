@@ -11,6 +11,8 @@ def init_database():
     prf_table = ProductBandTable()
     benchmark_table = BenchmarkTable()
     pb_table = ProductBenchmarkTable()
+    test_table = TestTable()
+    pt = ProductTestTable()
     
     prf_table.drop()
     pb_table.drop()
@@ -18,6 +20,8 @@ def init_database():
     rf_table.drop()
     benchmark_table.drop()
     product_table.drop()
+    pt.drop()
+    test_table.drop()
 
     product_table.create()
     log_table.create()
@@ -25,6 +29,8 @@ def init_database():
     prf_table.create()
     benchmark_table.create()
     pb_table.create()
+    test_table.create()
+    pt.create()
 
 
 def insert_fake_data(table_name: str, table_values: list):
@@ -59,15 +65,6 @@ def populate_db():
             insert_fake_data(table_name="Benchmark", table_values=[{"name": benchmark}])
             insert_fake_data(table_name="Product_Benchmark", table_values=[pb])
 
-    #Insert RF Bands
-    # bands = [
-    #     {'name': 'lte1', 'direction': 'uplink','frequency': 1950, 'target': 23},
-    #     {'name': 'lte1', 'direction': 'downlink','frequency': 2140, 'target': -60},
-    #     {'name': 'lte3', 'direction': 'uplink','frequency': 1747, 'target': 23},
-    #     {'name': 'lte5', 'direction': 'uplink','frequency': 836, 'target': 23},
-    #     {'name': 'lte7', 'direction': 'uplink','frequency': 2535, 'target': 23},
-    # ]
-
     bands = LTE + WCMDA + GSM
     insert_fake_data(table_name="Band", table_values=bands)
     
@@ -82,6 +79,20 @@ def populate_db():
         measurements.append(measurement)
 
     insert_fake_data(table_name="Product_Band", table_values=measurements)
+
+    tests = [
+        {"name": "test 1", "type": "text", "min_limit": "te", "max_limit": "", "units": ""},
+        {"name": "test 2", "type": "numeric", "min_limit": "1", "max_limit": "3", "units": "volts"},
+        {"name": "test 3", "type": "numeric", "min_limit": "4", "max_limit": "-7", "units": "ohms"},
+        {"name": "did f1", "type": "text", "min_limit": "ABC", "max_limit": "", "units": "DID F1"},
+        {"name": "did f2", "type": "text", "min_limit": "FGT", "max_limit": "", "units": ""},
+    ]
+    insert_fake_data(table_name="Test", table_values=tests)
+
+    for serial_number in serial_numbers:
+        for index, test in enumerate(tests):
+            result = str(randint(0, 10)) if test["type"] == "numeric" else "blabla"
+            insert_fake_data(table_name="Product_Test", table_values=[{"serial_number": serial_number, "test_id": index + 1, "result": result}])
 
 
 if "__main__" == __name__:
