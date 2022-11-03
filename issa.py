@@ -3,7 +3,6 @@ import sqlite3
 from sqlite3 import Error, Connection
 from sqlite3.dbapi2 import IntegrityError
 
-from numpy import double
 
 class ISSA:
     """
@@ -30,7 +29,7 @@ class ISSA:
         is_valid():
             Looks if the pk_value exists in the calling child class DB table_name.
     """
-    def __init__(self, db_file: str = "../db/pme.db") -> None:
+    def __init__(self, db_file: str = "C:/Pruef/Sqlite/db/pme.db") -> None:
         self.db_file = db_file
         self.cwd = os.getcwd()
         self.table_name = ""
@@ -131,7 +130,7 @@ class ISSA:
                     values = ('?,'*len(item)).rstrip(",")
                     query=f"INSERT INTO {self.table_name} {columns} VALUES ({values})"
                     params = item
-                    with open("../issa/log.txt", 'w') as f:
+                    with open("C:/Pruef/issa.txt", 'w') as f:
                         f.write(query + '\n')
                         f.write(str(params) + '\n')
                     c.execute(query, params)
@@ -236,6 +235,35 @@ class ProductTable(ISSA):
         """
         sql = create_table_sql if create_table_sql else sql
         super().create(sql)
+
+
+    def get_product_dids(self, serial_number: str) -> list:
+        """
+        Get all test which includes did in their name from the serial number.
+
+        Parameters
+            serial_number (str): Device serial number.
+
+        Returns
+            rows (list): All results.
+        """
+        query = f"""
+        SELECT 
+            t.name AS 'Test Name',
+            t.min_limit AS 'Min Limit',
+            t.max_limit AS 'Max Limit',
+            t.units AS 'Units'
+        FROM 
+            Test as t
+        INNER JOIN
+            Product_Test as pt
+        ON
+            t.id = pt.test_id
+        WHERE
+            t.name LIKE '%did%' AND pt.serial_number is '{serial_number}';
+        """
+        rows = self.fetch(query)
+        return rows
 
 
 class BandTable(ISSA):
@@ -553,10 +581,11 @@ class ProductTestTable(ISSA):
 
 
     def insert_product_test(self, serial_number: str, tests: list) -> None:
-        with open("../issa/log.txt", 'w') as f:
-            f.write(serial_number + '\n')
-            for item in tests:
-                f.write(str(item) + '\n')
+        # Log data only for testing purposes
+        # with open("../issa/log.txt", 'w') as f:
+        #     f.write(serial_number + '\n')
+        #     for item in tests:
+        #         f.write(str(item) + '\n')
 
         pt = ProductTestTable()
         test_table = TestTable()

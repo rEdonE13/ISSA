@@ -18,12 +18,13 @@ class Report:
         self.base_path = self.create_base_path()
         self.log_test_path = self.base_path + "/LogTest.xlsx"
         self.benchmark_path = self.base_path + "/Benchmark.xlsx"
+        self.dids_report_path = self.base_path + "/DIDs_Report.xlsx"
 
 
     def create_base_path(self) -> str:
         """
         """
-        base_path = "../reports"
+        base_path = "reports"
         if not os.path.exists(base_path):
             os.mkdir(base_path)
         return base_path
@@ -80,3 +81,15 @@ class Report:
     #TODO (redone13): Implement a function for writing a test log report based on the product type.
 
     #TODO (redone13): Add beautification to generated Excel Reports.
+
+    #TODO (redone13): Create a DID Report.
+    def write_dids_report(self, serial_number) -> None:
+        """Writes a DID reports for variants liberation.
+            Parameters:
+            serial_number   (str):  Serial Number
+        """
+        product = ProductTable()
+        test_dids = product.get_product_dids(serial_number)
+        with pd.ExcelWriter(self.dids_report_path) as writer:
+            df = pd.DataFrame(test_dids, columns=['Test Name', 'Min Limit', 'Max Limit', 'Units'])
+            df.to_excel(writer, sheet_name=serial_number, index=False)

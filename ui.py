@@ -40,7 +40,7 @@ class ISSAInterface:
         # Combobox
         options = StringVar() 
         self.options_box = Combobox(width=20, textvariable=options, font=FONT)
-        self.options_box["values"] = ("Benchmark", "Log")
+        self.options_box["values"] = ("Benchmark", "Log", "DIDs Report")
         self.options_box.current(0)
         self.options_box.grid(sticky=W, column=0, row=2, pady=10)
         
@@ -74,7 +74,7 @@ class ISSAInterface:
     def generate_report(self):
         report = Report()
         serial_number = self.report_input.get()
-        selected_option = self.options_box.get()
+        selected_option = self.options_box.get()        
         
         if selected_option.lower() == "benchmark":
             if serial_number:
@@ -89,6 +89,11 @@ class ISSAInterface:
                 self.stauts_label.config(text="Log successfully created!")
             else:
                 report.write_log_test_last_product()
+
+        elif selected_option.lower() == "dids report":
+            if serial_number:
+                report.write_dids_report(serial_number)
+                self.stauts_label.config(text="DIDs report successfully created!")
 
 
 if "__main__" == __name__:
