@@ -41,21 +41,3 @@ GSM = [
     {"frequency": 1960,     "tech": "gsm",      "band": 1900,   "direction": "downlink",    "target": -60},
     {"frequency": 1880,     "tech": "gsm",      "band": 1900,   "direction": "uplink",      "target": 23},
 ]
-
-
-# LTE = [
-#     {"frequency": 2140, "name": "lte1", "direction": "downlink", "target": -60},
-#     {"frequency": 1950, "name": "lte1", "direction": "uplink", "target": 23},
-#     {"frequency": 1960, "name": "lte2", "direction": "downlink", "target": -60},
-#     {"frequency": 1880, "name": "lte2", "direction": "uplink", "target": 23},
-#     {"frequency": 1842.5, "name": "lte3", "direction": "downlink", "target": -60},
-#     {"frequency": 1747.5, "name": "lte3", "direction": "uplink", "target": 23},
-#     {"frequency": 881.5, "name": "lte5", "direction": "downlink", "target": -60},
-#     {"frequency": 836.5, "name": "lte5", "direction": "uplink", "target": 23},
-#     {"frequency": 2655, "name": "lte7", "direction": "downlink", "target": -60},
-#     {"frequency": 2535, "name": "lte7", "direction": "uplink", "target": 23},
-#     {"frequency": 751, "name": "lte13", "direction": "downlink", "target": -60},
-#     {"frequency": 782, "name": "lte13", "direction": "uplink", "target": 23},
-#     {"frequency": 882.5, "name": "lte19", "direction": "downlink", "target": -60},
-#     {"frequency": 837.5, "name": "lte19", "direction": "uplink", "target": 23},
-# ]

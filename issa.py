@@ -1,6 +1,8 @@
+"""Intelligent Storage System Application."""
+
 import os
 import sqlite3
-from sqlite3 import Error, Connection
+from sqlite3 import Connection, Error
 from sqlite3.dbapi2 import IntegrityError
 
 
@@ -38,18 +40,25 @@ class ISSA:
 
 
     def create_connection(self) -> Connection:
+        """
+        Create a db connection
+
+        Returns
+            conn (obj): sqlite3 connection obj
+        """
         conn = None
         try:
             conn = sqlite3.connect(self.db_file)
             return conn
-        except Error as e:
-            print(e)
+        except Error as err:
+            print(err)
+            return None
 
-    
+
     def create(self, create_table_sql: str) -> None:
         """
         Executes the provided SQL script to create a table.
-        
+
         Parameters
             create_table_sql (str): SQL script
 
@@ -58,18 +67,18 @@ class ISSA:
         """
         try:
             with self.create_connection() as conn:
-                c = conn.cursor()
-                c.executescript(create_table_sql)
-        except Error as e:
-            print(e)
-    
-    
+                cur = conn.cursor()
+                cur.executescript(create_table_sql)
+        except Error as err:
+            print(err)
+
+
     def drop(self) -> None:
         """
         Drops the DB table from the calling subclass.
 
         If a subclass provide a table_name, this function will drop it.
-        
+
         Parameters
             None
 
@@ -78,10 +87,10 @@ class ISSA:
         """
         try:
             with self.create_connection() as conn:
-                c = conn.cursor()
-                c.execute(f"DROP TABLE IF EXISTS {self.table_name};")
-        except Error as e:
-            print(e)
+                cur = conn.cursor()
+                cur.execute(f"DROP TABLE IF EXISTS {self.table_name};")
+        except Error as err:
+            print(err)
 
 
     def insert(self, table_data) -> None:
@@ -90,27 +99,30 @@ class ISSA:
 
         Parameters
             table_data  (dict): dict containing the table name and values to insert.
-        
+
         Returns
             None
+
+        Raises
+            IntegrityError: Let the error by pass.
         """
         try:
             with self.create_connection() as conn:
-                c = conn.cursor()
+                cur = conn.cursor()
                 for item in table_data["table_values"]:
-                    columns = tuple(item.keys()) if len(item.keys()) > 1 else str(tuple(item.keys())).replace(",", "")
+                    cols = tuple(item.keys()) if len(item.keys()) > 1 else str(tuple(item.keys())).replace(",", "")
                     values = ('?,'*len(item)).rstrip(",")
-                    query=f"INSERT INTO {table_data['table_name']} {columns} VALUES ({values})"
+                    query=f"INSERT INTO {table_data['table_name']} {cols} VALUES ({values})"
                     params = tuple(item.values())
-                    c.execute(query, params)
+                    cur.execute(query, params)
                 conn.commit()
-        except IntegrityError as e:
+        except IntegrityError:
             pass
-        except Error as e:
-            print(e)
+        except Error as err:
+            print(err)
 
 
-    def insert_values(self, columns: list = [], table_data: list = []) -> None:
+    def insert_values(self, columns: list, table_data: list) -> None:
         """
         Inserts data from the provided params from TestStand.
 
@@ -121,56 +133,61 @@ class ISSA:
         Returns
             None
         """
+
+        columns = columns or []
+        table_data = table_data or []
+
         try:
             with self.create_connection() as conn:
-                c = conn.cursor()
+                cur = conn.cursor()
                 columns = tuple(columns)
                 for item in table_data:
                     columns = columns if len(columns) > 1 else str(columns).replace(',','')
                     values = ('?,'*len(item)).rstrip(",")
                     query=f"INSERT INTO {self.table_name} {columns} VALUES ({values})"
                     params = item
-                    with open("C:/Pruef/issa.txt", 'w') as f:
-                        f.write(query + '\n')
-                        f.write(str(params) + '\n')
-                    c.execute(query, params)
+                    with open("C:/Pruef/issa.txt", 'w', encoding="utf-8") as log:
+                        log.write(query + '\n')
+                        log.write(str(params) + '\n')
+                    cur.execute(query, params)
                 conn.commit()
-        except IntegrityError as e:
+        except IntegrityError:
             pass
-        except Error as e:
-            print(e)
+        except Error as err:
+            print(err)
 
 
     def fetch(self, query) -> list:
         """
         Fetches all data from the input query.
-        
+
         Parameters
             query (str): SQL query
-        
+
         Returns
             rows (list): Fetched rows list
         """
         try:
             with self.create_connection() as conn:
-                c = conn.cursor()
-                c.execute(query)
-                rows = c.fetchall()
+                cur = conn.cursor()
+                cur.execute(query)
+                rows = cur.fetchall()
                 return rows
-        except Error as e:
-            print(e)
-    
+        except Error as err:
+            print(err)
+            return None
+
 
     def get_last_row(self) -> tuple:
         """
         Gets the last row of the calling child class.
-        
+
         Based in the calling child class attributes table_name and primary_key, this
         function will get the last row from the DB table.
-        
+
         Parameters
             None
-        
+
         Returns
             last_row (tuple): Fetched last row
         """
@@ -182,11 +199,12 @@ class ISSA:
         '''
         try:
             with self.create_connection() as conn:
-                c = conn.cursor()
-                c.execute(query)
-                return c.fetchone()
-        except Error as e:
-            print(e)
+                cur = conn.cursor()
+                cur.execute(query)
+                return cur.fetchone()
+        except Error as err:
+            print(err)
+            return None
 
 
     def is_valid(self, pk_value: str) -> bool:
@@ -211,8 +229,8 @@ class ISSA:
                 last_row = c.fetchone()
                 if last_row:
                     return True
-        except Error as e:
-            print(e)
+        except Error as err:
+            print(err)
             return False
 
 
@@ -302,8 +320,8 @@ class BandTable(ISSA):
                 last_row = c.fetchone()
                 if last_row:
                     return True
-        except Error as e:
-            print(e)
+        except Error:
+            print(Error)
             return False
 
 
@@ -463,8 +481,8 @@ class ProductBenchmarkTable(ISSA):
                 c = conn.cursor()
                 c.execute(query)
                 return c.fetchall()
-        except Error as e:
-            print(e)
+        except Error as err:
+            print(err)
 
 
     def insert_product_benchmark(self, serial_number: str, benchmark_name: str, duration_sec: int):
@@ -486,8 +504,8 @@ class ProductBenchmarkTable(ISSA):
                                         "benchmark_id": benchmark_id, 
                                         "duration_sec": duration_sec}]}
                 self.insert(table_data)
-        except Error as e:
-            print(e)
+        except Error as err:
+            print(err)
 
 
     def get_product_benchmarks(self, serial_numbers: list) -> list:
@@ -495,6 +513,9 @@ class ProductBenchmarkTable(ISSA):
 
 
 class TestTable(ISSA):
+    """
+    Class to represent a Test Table in ISSA.
+    """
     def __init__(self, table_name: str = "Test") -> None:
         super().__init__()
         self.table_name = table_name
@@ -518,6 +539,15 @@ class TestTable(ISSA):
 
 
     def is_valid(self, name: str) -> bool:
+        """
+        Verify if table attribute is valid.
+
+        Parameters
+            name (str): Table attribute name.
+
+        Returns
+            is_valid (bool): If attribute exists, then return True.
+        """
         query = f"""
         SELECT id
         FROM { self.table_name }
@@ -525,15 +555,15 @@ class TestTable(ISSA):
         """
         try:
             with self.create_connection() as conn:
-                c = conn.cursor()
-                c.execute(query)
-                id = c.fetchone()
+                cur = conn.cursor()
+                cur.execute(query)
+                id = cur.fetchone()
                 if id:
                     return True
                 else:
                     return False
-        except Error as e:
-            print(e)
+        except Error as err:
+            print(err)
 
 
     def get_id(self, name: str) -> int:
@@ -553,7 +583,7 @@ class TestTable(ISSA):
         try:
             return rows[0][0]
         except IndexError:
-            pass
+            return None
 
 
 class ProductTestTable(ISSA):
@@ -581,6 +611,15 @@ class ProductTestTable(ISSA):
 
 
     def insert_product_test(self, serial_number: str, tests: list) -> None:
+        """
+        $Insert a test into a product.
+
+        Parameters
+            $serial_number ($str): $Serial Number.
+
+        Returns
+            None
+        """
         # Log data only for testing purposes
         # with open("../issa/log.txt", 'w') as f:
         #     f.write(serial_number + '\n')
