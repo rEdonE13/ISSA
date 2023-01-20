@@ -1,3 +1,5 @@
+"""RF Configuration"""
+
 LTE = [
     {"frequency": 2140,     "tech": "lte",      "band": 1,      "direction": "downlink",    "target": -60},
     {"frequency": 1950,     "tech": "lte",      "band": 1,      "direction": "uplink",      "target": 23},
