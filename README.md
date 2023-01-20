@@ -22,11 +22,11 @@ To create the db file with the default architecture, just run the main.py script
 
 
 The iSSA interface will fetch the last serial number available in the `pme.db` file.
-![iSSA User Interface]()
+![iSSA User Interface](https://user-images.githubusercontent.com/16616359/213698227-d3ea6ac8-f325-4c51-bdff-fd3ceb497f4a.png)
 
 
 A benchmark report like in the folling image is going to be generated.
-![Benchmark Report]()
+![Benchmark Report](https://user-images.githubusercontent.com/16616359/213698071-2f61fb4b-cfe2-4525-be45-f11ece11fd04.png)
 
 ## Benchmark Report
 Set your target *Serial Number* report type as *Benchmark* from the drop-down menu and *Click* Create Report.
